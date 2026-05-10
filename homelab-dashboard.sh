@@ -16,7 +16,6 @@ STORAGE=$(pvesm status | awk 'NR>1 && $1=="local-lvm"{print $1; exit}')
 ok "CTID: $CTID"
 ok "Storage: $STORAGE"
 info "Updating template catalog..."
-info "Updating template catalog..."
 pveam update >/dev/null 2>&1 || true
 TEMPLATE=$(pveam available 2>/dev/null | awk '/^system[[:space:]]+alpine-[0-9.]+-default/ && /amd64/ {print $2}' | sort -V | tail -n1)
 [[ -z "$TEMPLATE" ]] && err "No Alpine template found in pveam available"
@@ -41,7 +40,7 @@ server {
   root /usr/share/nginx/html;
   index index.html;
   location / {
-    try_files $uri $uri/ /index.html;
+    try_files \$uri \$uri/ /index.html;
   }
 }
 EOF'
