@@ -16,14 +16,15 @@ STORAGE=$(pvesm status | awk 'NR>1 && $1=="local-lvm"{print $1; exit}')
 ok "CTID: $CTID"
 ok "Storage: $STORAGE"
 info "Updating template catalog..."
+info "Updating template catalog..."
 pveam update >/dev/null 2>&1 || true
-TEMPLATE=$(pveam available 2>/dev/null | awk '/alpine-3.21-default/ && /amd64/ {print $2; exit}')
-[[ -z "$TEMPLATE" ]] && TEMPLATE="alpine-3.21-default_3.21_amd64.tar.xz"
+TEMPLATE=$(pveam available 2>/dev/null | awk '/^system[[:space:]]+alpine-[0-9.]+-default/ && /amd64/ {print $2}' | sort -V | tail -n1)
+[[ -z "$TEMPLATE" ]] && err "No Alpine template found in pveam available"
 ok "Template: $TEMPLATE"
 info "Downloading template if needed..."
 pveam download local "$TEMPLATE" >/dev/null 2>&1 || true
-TEMPLATE_VOL=$(pveam list local 2>/dev/null | awk '/alpine-3.21-default/ {print $1; exit}')
-[[ -z "$TEMPLATE_VOL" ]] && TEMPLATE_VOL="local:vztmpl/$TEMPLATE"
+TEMPLATE_VOL=$(pveam list local 2>/dev/null | awk -v t="$TEMPLATE" '$1 ~ t {print $1; exit}')
+[[ -z "$TEMPLATE_VOL" ]] && err "Template was not found on local storage after download: $TEMPLATE"
 ok "Template volume: $TEMPLATE_VOL"
 info "Creating LXC..."
 pct create "$CTID" "$TEMPLATE_VOL" --hostname homelab-dashboard --unprivileged 1 --cores 1 --memory 256 --rootfs "$STORAGE:2" --net0 name=eth0,bridge=vmbr0,ip=dhcp,ip6=auto --onboot 1 >/dev/null
