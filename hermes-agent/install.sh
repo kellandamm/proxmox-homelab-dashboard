@@ -27,7 +27,7 @@ done
 : "${HOSTNAME:=hermes-agent}"
 : "${CORES:=2}"
 : "${MEMORY:=2048}"          # MB — 2 GB minimum; uv + Node.js + Playwright need headroom
-: "${DISK:=8}"               # GB rootfs
+: "${DISK:=20}"              # GB rootfs — Hermes image is ~2.75 GB; 20 GB gives comfortable headroom
 : "${BRIDGE:=vmbr0}"
 : "${HERMES_PORT:=9119}"     # WebUI / dashboard port
 : "${UNPRIVILEGED:=1}"
@@ -123,8 +123,6 @@ run "mkdir -p /opt/hermes-agent /home/hermes/.hermes/skills"
 # ── docker-compose.yml ────────────────────────────────────────────────────────
 info "Writing docker-compose.yml…"
 pct exec "$CTID" -- bash -c "cat > /opt/hermes-agent/docker-compose.yml" << 'COMPOSE'
-version: '3.8'
-
 services:
   hermes-agent:
     image: nousresearch/hermes-agent:latest
